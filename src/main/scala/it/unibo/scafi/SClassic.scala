@@ -1,11 +1,12 @@
 package it.unibo.scafi
 
 import it.unibo.alchemist.model.scafi.ScafiIncarnationForAlchemist._
+import it.unibo.scafi.incarnation.BlockSFix
 
 import scala.concurrent.duration.FiniteDuration
 
 class SClassic extends AggregateProgram with StandardSensors with ScafiAlchemistSupport
-  with Gradients with BlockS with FieldUtils {
+  with Gradients with BlockS with BlockSFix with FieldUtils {
   lazy val grain: Double = node.get("grain")
   override def main(): Any = {
     // An aggregate operation
