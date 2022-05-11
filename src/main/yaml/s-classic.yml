@@ -1,0 +1,67 @@
+incarnation: scafi
+
+#environment:
+#  type: OSMEnvironment
+#  parameters: ["toronto.pbf", false]
+
+variables:
+  seed: &random
+    min: 0
+    max: 0
+    step: 1
+    default: 0
+  total-nodes: &total-nodes
+    formula: 500
+  grain: &grain
+    formula: 1.0
+
+seeds:
+  scenario: *random
+  simulation: *random
+  
+network-model:
+  type: ConnectWithinDistance
+  parameters: [0.5]
+
+_shared: &shared
+  - molecule: grain
+    concentration: *grain
+
+_program: &program
+  - time-distribution: 0.3
+    type: Event
+    actions:
+      - type: RunScafiProgram
+        parameters: [ it.unibo.scafi.SClassic, 5 ]
+  - program: send
+
+deployments:
+  ##### REAL SENSOR TRACE
+  - type: Grid
+    parameters: [-5, -5, 5, 5, 0.25, 0.25, 0.1, 0.1]
+    programs: *program
+    contents:
+      shared: *shared
+      costum:
+        molecule: real
+        concentration: true
+
+export:
+  - type: CSVExporter
+    parameters:
+      fileNameRoot: "simulation-foo"
+      exportPath: "data"
+      interval: 1
+    data:
+      - time
+      - type: Oracle
+      - molecule: station-busy
+        value-filter: onlyfinite
+        aggregators: [ sum, max ]
+      - molecule: solve
+        value-filter: onlyfinite
+        aggregators: [ mean ]
+
+terminate:
+  - type: AfterTime
+    parameters: 1500 #42800
