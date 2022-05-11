@@ -1,0 +1,77 @@
+name: CI
+on:
+  push:
+    tags: '*'
+    branches-ignore:
+      - 'autodelivery**'
+      - 'bump-**'
+      - 'renovate/**'
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - 'LICENSE'
+      - 'README.md'
+      - 'renovate.json'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  compute-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: danysk/action-checkout@0.2.1
+      - id: version
+        run: |
+          echo "::set-output name=version::$(./gradlew printGit | grep -oP '^Version computed by GitSemVer: \K.*$')"
+  check-simulations:
+    strategy:
+      matrix:
+        os: [ windows, macos, ubuntu ]
+    runs-on: ${{ matrix.os }}-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3.0.1
+    - uses: DanySK/build-check-deploy-gradle-action@1.2.12
+      with:
+        build-command: true
+        check-command: ./gradlew runAllGraphic
+        deploy-command: true
+  create-charts-and-deploy:
+    runs-on: ubuntu-latest
+    needs: [compute-version]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.1
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install pyenv
+        uses: gabrielfalcao/pyenv-action@v9
+        with:
+          command: pyenv install
+      - name: Install Python
+        run: pyenv install
+      - name: Upgrade pip
+        run: pip install --upgrade pip --user
+      - name: Install requirements
+        run: pip install -r requirements.txt --user
+      - name: Prepare charts folder
+        run: mkdir -p charts
+      - name: Generate charts
+        run: python process.py
+      - name: Generate archive
+        run: tar --use-compress-program zstd -cf charts.tar.zst charts/
+      - uses: ncipollo/release-action@v1.10.0
+        if: ${{ github.event_name != 'pull_request' }}
+        name: Create GitHub Release
+        with:
+          tag: ${{ needs.compute-version.outputs.version }}
+          allowUpdates: true
+          replacesArtifacts: true
+          artifacts: charts.tar.zst
+          token: ${{ secrets.GITHUB_TOKEN }}
