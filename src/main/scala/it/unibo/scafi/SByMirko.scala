@@ -10,7 +10,9 @@ class SByMirko extends AggregateProgram with StandardSensors with ScafiAlchemist
     // An aggregate operation
     val leader = S(grain)
     // Write access to node state
-    node.put("leader", leader == mid())
+    node.put("leader", leader)
+    node.put("leaderEffect", leader % 7)
+    node.put("isLeader", leader == mid())
     // Return value of the program
     leader == mid()
   }
@@ -20,20 +22,18 @@ class SByMirko extends AggregateProgram with StandardSensors with ScafiAlchemist
   case class Msg(distance: Double, id: Int, symBreaker: Int)
   implicit object BoundedMsg extends Bounded[Msg]{
     override def bottom: Msg = Msg(0.0, mid(), mid())
-    override def top: Msg = Msg(0.0, mid, Int.MaxValue)
+    override def top: Msg = Msg(0.0, mid(), Int.MaxValue)
     override def compare(a: Msg, b: Msg): Int =
-      if (a.symBreaker == b.symBreaker)
-        a.distance.compareTo(b.distance)
-      else
-        a.symBreaker.compareTo(b.symBreaker)
+      if (a.symBreaker == b.symBreaker)  a.distance.compareTo(b.distance)  else  a.symBreaker.compareTo(b.symBreaker)
   }
 
   def S(grain: Double): ID =
-    rep(Msg(0.0, mid, mid)){ case Msg(d,i,s) =>
+    rep(Msg(0.0, mid(), mid())){ case Msg(d,i,s) =>
+      node.put("past msg", Msg(d,i,s))
       minHood[Msg]{
-        Msg(nbr{d} + nbrRange, nbr{i}, nbr{s}) match {
+        Msg(nbr{d} + nbrRange(), nbr{i}, nbr{s}) match {
           case Msg(_, id, _) if (id == mid()) => implicitly[Bounded[Msg]].bottom
-          case Msg(dd, _, _) if (dd >= grain) => implicitly[Bounded[Msg]].top
+          case Msg(dd, id, _) if (dd >= grain) => implicitly[Bounded[Msg]].top
           case m => m
         }
       }

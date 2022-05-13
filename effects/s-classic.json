@@ -62,7 +62,7 @@
   {
     "type": "class it.unibo.alchemist.boundary.gui.effects.DrawShape",
     "curIncarnation": "scafi",
-    "mode": "FILL_ELLIPSE",
+    "mode": "FILL_RECTANGLE",
     "red": {
       "max": 255,
       "min": 0,
@@ -91,10 +91,10 @@
     "size": {
       "max": 100,
       "min": 0,
-      "val": 20
+      "val": 24
     },
     "molFilter": true,
-    "molString": "leader",
+    "molString": "isLeader",
     "molPropertyFilter": true,
     "property": "",
     "writingPropertyValue": false,
@@ -117,6 +117,66 @@
     },
     "colorCache": {
       "value": -16776961
+    }
+  },
+  {
+    "type": "class it.unibo.alchemist.boundary.gui.effects.DrawShape",
+    "curIncarnation": "scafi",
+    "mode": "FILL_ELLIPSE",
+    "red": {
+      "max": 255,
+      "min": 0,
+      "val": 0
+    },
+    "blue": {
+      "max": 255,
+      "min": 0,
+      "val": 255
+    },
+    "green": {
+      "max": 255,
+      "min": 0,
+      "val": 0
+    },
+    "alpha": {
+      "max": 255,
+      "min": 0,
+      "val": 151
+    },
+    "scaleFactor": {
+      "max": 100,
+      "min": 0,
+      "val": 50
+    },
+    "size": {
+      "max": 100,
+      "min": 0,
+      "val": 16
+    },
+    "molFilter": true,
+    "molString": "leaderEffect",
+    "molPropertyFilter": true,
+    "property": "",
+    "writingPropertyValue": false,
+    "c": "HUE",
+    "reverse": false,
+    "propoom": {
+      "max": 10,
+      "min": -10,
+      "val": 0
+    },
+    "minprop": {
+      "max": 10,
+      "min": -10,
+      "val": 0
+    },
+    "maxprop": {
+      "max": 10,
+      "min": -10,
+      "val": 8
+    },
+    "colorCache": {
+      "value": -1761607425
     }
   }
 ]

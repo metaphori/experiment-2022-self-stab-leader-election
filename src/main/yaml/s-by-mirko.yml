@@ -13,7 +13,7 @@ variables:
   total-nodes: &total-nodes
     formula: 500
   grain: &grain
-    formula: 1.0
+    formula: 2.0
 
 seeds:
   scenario: *random
