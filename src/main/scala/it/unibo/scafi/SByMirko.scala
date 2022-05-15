@@ -3,6 +3,9 @@ package it.unibo.scafi
 import it.unibo.alchemist.model.scafi.ScafiIncarnationForAlchemist._
 import it.unibo.scafi.incarnation.BlockSFix
 
+/**
+  * Notice: this S program does not work. See comment below.
+  */
 class SByMirko extends AggregateProgram with StandardSensors with ScafiAlchemistSupport
   with Gradients with FieldUtils {
   lazy val grain: Double = node.get("grain")
@@ -24,9 +27,26 @@ class SByMirko extends AggregateProgram with StandardSensors with ScafiAlchemist
     override def bottom: Msg = Msg(0.0, mid(), mid())
     override def top: Msg = Msg(0.0, mid(), Int.MaxValue)
     override def compare(a: Msg, b: Msg): Int =
-      if (a.symBreaker == b.symBreaker)  a.distance.compareTo(b.distance)  else  a.symBreaker.compareTo(b.symBreaker)
+      // if (a.symBreaker == b.symBreaker)  a.distance.compareTo(b.distance)  else  a.symBreaker.compareTo(b.symBreaker)
+      List(a.symBreaker.compareTo(b.symBreaker), a.distance.compareTo(b.distance), a.id.compareTo(b.id)).collectFirst { case x if x != 0 => x }.getOrElse(0)
   }
 
+  /**
+    * This does not work. Two effects can be observed:
+    * 1) a node can be recognised by others as leader without considering itself a leader
+    * 2) areas are formed basically according to the ID of nodes.. so, if we have a grid network
+    * like this.
+    *    7  8  9
+    *    4  5  6
+    *    1  2  3
+    *  S would produce something as
+    *    4  4  5
+    *    1  1  2
+    *    1  1  2
+    *  i.e. only node 1 would self-recognise as leader and correctly form an area, whereas other
+    *  areas would be at the outskirt of area 1, proposing leaders that are inside other areas
+    *  and not even leaders there!
+    */
   def S(grain: Double): ID =
     rep(Msg(0.0, mid(), mid())){ case Msg(d,i,s) =>
       node.put("past msg", Msg(d,i,s))
