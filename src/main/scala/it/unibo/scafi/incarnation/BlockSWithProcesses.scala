@@ -73,6 +73,7 @@ trait BlockSWithProcesses {
       selectLeader(leaders + default).getOrElse(default)
     }._1
   }
+
   Predef
   private def processDefinition[S: Bounded]: ID => LeaderProcessInput[S] => POut[LeaderProcessOutput[S]] = id =>
     input => {
