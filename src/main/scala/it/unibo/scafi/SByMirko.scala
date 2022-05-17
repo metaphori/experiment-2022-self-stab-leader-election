@@ -11,7 +11,8 @@ class SByMirko extends AggregateProgram with StandardSensors with ScafiAlchemist
   lazy val grain: Double = node.get("grain")
   override def main(): Any = {
     // An aggregate operation
-    val leader = SwithSB(grain, mid())
+    val symBreaker = rep(alchemistRandomGen.nextInt())(identity)
+    val leader = SwithSB(grain, symBreaker)
     // Write access to node state
     node.put("leader", leader)
     node.put("leaderEffect", leader % 7)
