@@ -37,8 +37,10 @@ _program: &program
 
 deployments:
   ##### REAL SENSOR TRACE
-  - type: Grid
-    parameters: [-5, -5, 5, 5, 0.25, 0.25, 0.1, 0.1]
+  # - type: Grid
+  #  parameters: [-5, -5, 5, 5, 0.25, 0.25, 0.1, 0.1]
+  - type: GraphStreamDeployment
+    parameters: [400, "Lobster", 2, 10]
     programs: *program
     contents:
       shared: *shared

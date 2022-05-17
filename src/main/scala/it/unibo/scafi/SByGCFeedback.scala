@@ -27,7 +27,7 @@ class SByGCFeedback extends AggregateProgram with StandardSensors with ScafiAlch
     *          A small value improves resilience but slows convergence or can elect multiple leaders
     * @return
     */
-  def SbyGCfeedback(k: Double = 1.0): ID = rep(Msg()) { case Msg(leaderEst, hopCount, propRadius, _) =>
+  def SbyGCfeedback(k: Double = 1.5): ID = rep(Msg()) { case Msg(leaderEst, hopCount, propRadius, _) =>
     val m@Msg(leader, hopDistEstimate, _, _) = mabf(leaderEst, propRadius)
     node.put("mabf", m)
     val potential = hopDistEstimate // classicGradient(leader == mid())
