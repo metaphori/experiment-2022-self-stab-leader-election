@@ -27,8 +27,8 @@ class SByMirko extends AggregateProgram with StandardSensors with ScafiAlchemist
     override def bottom: Msg = Msg(0.0, mid(), mid())
     override def top: Msg = Msg(0.0, mid(), Int.MaxValue)
     override def compare(a: Msg, b: Msg): Int =
-      // if (a.symBreaker == b.symBreaker)  a.distance.compareTo(b.distance)  else  a.symBreaker.compareTo(b.symBreaker)
-      List(a.symBreaker.compareTo(b.symBreaker), a.distance.compareTo(b.distance), a.id.compareTo(b.id)).collectFirst { case x if x != 0 => x }.getOrElse(0)
+      if (a.symBreaker == b.symBreaker)  a.distance.compareTo(b.distance)  else  a.symBreaker.compareTo(b.symBreaker)
+      // List(a.symBreaker.compareTo(b.symBreaker), a.distance.compareTo(b.distance), a.id.compareTo(b.id)).collectFirst { case x if x != 0 => x }.getOrElse(0)
   }
 
   /**
@@ -53,7 +53,7 @@ class SByMirko extends AggregateProgram with StandardSensors with ScafiAlchemist
       minHood[Msg]{
         Msg(nbr{d} + nbrRange(), nbr{i}, nbr{s}) match {
           case Msg(_, id, _) if (id == mid()) => implicitly[Bounded[Msg]].bottom
-          case Msg(dd, id, _) if (dd >= grain) => implicitly[Bounded[Msg]].top
+          case Msg(dd, _, _) if (dd >= grain) => implicitly[Bounded[Msg]].top
           case m => m
         }
       }
