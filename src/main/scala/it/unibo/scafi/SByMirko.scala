@@ -58,8 +58,11 @@ class SByMirko extends AggregateProgram with StandardSensors with ScafiAlchemist
           case m => m
         }
       }
+      val perturbLeader = branch(alchemistTimestamp.toDouble > 500 && alchemistTimestamp.toDouble < 520) {
+        rep(alchemistRandomGen.nextInt())(identity)
+      } { minMsg.id }
       // node.put("minMsg", minMsg)
-      minMsg
+      minMsg.copy(id = perturbLeader)
     }.id
 
 }
