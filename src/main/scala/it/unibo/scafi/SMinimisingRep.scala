@@ -10,8 +10,10 @@ class SMinimisingRep extends AggregateProgram with StandardSensors with ScafiAlc
   lazy val grain: Double = node.get("grain")
   override def main(): Any = {
     // An aggregate operation
-    val symBreaker = rep(alchemistRandomGen.nextInt())(identity)
-    val leader = SWithMinimisingRep(grain /*mid().doubleValue() / 100*/, mid())
+    val symBreaker = branch(alchemistTimestamp.toDouble.toLong % 2000 < 1000) { mid() } {
+      rep(alchemistRandomGen.nextInt())(identity)
+    }
+    val leader = SWithMinimisingRep(grain /*mid().doubleValue() / 100*/, symBreaker)
     // Write access to node state
     node.put("leader", leader)
     node.put("leaderEffect", leader % 7)
