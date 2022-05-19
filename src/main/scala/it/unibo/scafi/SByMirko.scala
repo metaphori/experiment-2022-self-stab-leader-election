@@ -12,7 +12,7 @@ class SByMirko extends AggregateProgram with StandardSensors with ScafiAlchemist
   override def main(): Any = {
     // An aggregate operation
     val symBreaker = rep(alchemistRandomGen.nextInt())(identity)
-    val leader = SwithSB(grain, symBreaker)
+    val leader = SwithSB(grain /*mid().doubleValue() / 100*/, mid())
     // Write access to node state
     node.put("leader", leader)
     node.put("leaderEffect", leader % 7)
@@ -23,7 +23,9 @@ class SByMirko extends AggregateProgram with StandardSensors with ScafiAlchemist
 
   import Builtins.Bounded
 
-  case class Msg(distance: Double, id: Int, symBreaker: Int)
+  case class Msg(distance: Double, id: Int, symBreaker: Int) {
+    def top: Msg = Msg(distance, id, Int.MaxValue)
+  }
   implicit object BoundedMsg extends Bounded[Msg]{
     override def bottom: Msg = Msg(0.0, mid(), mid())
     override def top: Msg = Msg(0.0, mid(), Int.MaxValue)
@@ -58,12 +60,13 @@ class SByMirko extends AggregateProgram with StandardSensors with ScafiAlchemist
     }
 
     rep(Msg(0.0, mid(), mid())){ case Msg(d,i,s) =>
-      minHoodPlus[Msg]{
+      val msg = minHoodPlus[Msg]{
         Msg(nbr{d} + nbrRange(), nbr{i}, nbr{s}) match {
-          case Msg(dd, id, _) if id == mid() || dd >= grain => implicitly[Bounded[Msg]].bottom
+          case m@Msg(dd, id, _) if id == mid() || dd >= grain => m.top // implicitly[Bounded[Msg]].bottom
           case m => m
         }
       }
+      if(msg.symBreaker == Int.MaxValue) implicitly[Bounded[Msg]].bottom else msg
     }.id
   }
 }
