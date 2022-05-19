@@ -41,10 +41,12 @@ class SMinimisingRep extends AggregateProgram with StandardSensors with ScafiAlc
     }
 
     val loc = Candidacy(symBreaker, 0.0, mid())
-    rep[Candidacy](loc) { case x@Candidacy(sym, dist, leader) =>
+    rep[Candidacy](loc) { case previousCandidacy @ Candidacy(sym, dist, leader) =>
       fR(
-        minHoodPlusLoc(loc)(fMP(Candidacy(nbr{sym}, nbr{dist} + nbrRange(), nbr{leader}))),
-        x
+        minHoodPlusLoc(loc){
+          fMP(Candidacy(nbr{sym}, nbr{dist} + nbrRange(), nbr{leader}))
+        },
+        previousCandidacy
       )
     }.leaderId
   }
