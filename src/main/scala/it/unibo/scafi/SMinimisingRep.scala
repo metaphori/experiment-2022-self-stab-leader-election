@@ -34,7 +34,7 @@ class SMinimisingRep extends AggregateProgram with StandardSensors with ScafiAlc
         List(a.symBreaker.compareTo(b.symBreaker), a.distance.compareTo(b.distance), a.id.compareTo(b.id)).collectFirst { case x if x != 0 => x }.getOrElse(0)
     }
 
-    def fR(curMing: Msg, old: Msg): Msg = curMin
+    def fR(curMin: Msg, old: Msg): Msg = curMin
     def fMP(value: Msg): Msg = value match {
       case Msg(dd, id, _) if id == mid() || dd >= grain => implicitly[Bounded[Msg]].top
       case m => m

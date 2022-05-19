@@ -62,6 +62,6 @@ export:
         value-filter: onlyfinite
         aggregators: [ mean ]
 
-terminate:
-  - type: AfterTime
-    parameters: 1500 #42800
+#terminate:
+#  - type: AfterTime
+#    parameters: 1500 #42800
