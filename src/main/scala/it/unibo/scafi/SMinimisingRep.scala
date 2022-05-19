@@ -10,7 +10,7 @@ class SMinimisingRep extends AggregateProgram with StandardSensors with ScafiAlc
   lazy val grain: Double = node.get("grain")
   override def main(): Any = {
     // An aggregate operation
-    val symBreaker = branch(alchemistTimestamp.toDouble.toLong % 2000 < 1000) { mid() } {
+    val symBreaker = branch(alchemistTimestamp.toDouble.toLong % 1200 < 600) { mid() } {
       rep(alchemistRandomGen.nextInt())(identity)
     }
     val leader = SWithMinimisingRep(grain /*mid().doubleValue() / 100*/, symBreaker)
@@ -24,29 +24,28 @@ class SMinimisingRep extends AggregateProgram with StandardSensors with ScafiAlc
 
   import Builtins.Bounded
 
-  case class Msg(distance: Double, id: Int, symBreaker: Int) {
-    def top: Msg = Msg(distance, id, Int.MaxValue)
-  }
+  case class Candidacy(symBreaker: Int, distance: Double, leaderId: Int)
 
   def SWithMinimisingRep(grain: Double, symBreaker: Int): ID = {
-    implicit object BoundedMsg extends Bounded[Msg]{
-      override def bottom: Msg = Msg(0.0, mid(), symBreaker)
-      override def top: Msg = Msg(0.0, mid(), Int.MaxValue)
-      override def compare(a: Msg, b: Msg): Int =
-        List(a.symBreaker.compareTo(b.symBreaker), a.distance.compareTo(b.distance), a.id.compareTo(b.id)).collectFirst { case x if x != 0 => x }.getOrElse(0)
+    implicit object BoundedMsg extends Bounded[Candidacy]{
+      override def bottom: Candidacy = Candidacy(implicitly[Bounded[Int]].bottom, implicitly[Bounded[Double]].bottom, implicitly[Bounded[ID]].bottom)
+      override def top: Candidacy = Candidacy(implicitly[Bounded[Int]].top, implicitly[Bounded[Double]].top, implicitly[Bounded[ID]].top)
+      override def compare(a: Candidacy, b: Candidacy): Int =
+        List(a.symBreaker.compareTo(b.symBreaker), a.distance.compareTo(b.distance), a.leaderId.compareTo(b.leaderId)).collectFirst { case x if x != 0 => x }.getOrElse(0)
     }
 
-    def fR(curMin: Msg, old: Msg): Msg = curMin
-    def fMP(value: Msg): Msg = value match {
-      case Msg(dd, id, _) if id == mid() || dd >= grain => implicitly[Bounded[Msg]].top
+    def fR(curMin: Candidacy, old: Candidacy): Candidacy = curMin
+    def fMP(value: Candidacy): Candidacy = value match {
+      case Candidacy(_, dd, id) if id == mid() || dd >= grain => implicitly[Bounded[Candidacy]].top
       case m => m
     }
 
-    rep[Msg](Msg(0.0, mid(), mid())) { case x@Msg(d,i,s) =>
+    val loc = Candidacy(symBreaker, 0.0, mid())
+    rep[Candidacy](loc) { case x@Candidacy(sym, dist, leader) =>
       fR(
-        minHoodPlusLoc(implicitly[Bounded[Msg]].bottom)(fMP(Msg(nbr{d} + nbrRange(), nbr{i}, nbr{s}))),
+        minHoodPlusLoc(loc)(fMP(Candidacy(nbr{sym}, nbr{dist} + nbrRange(), nbr{leader}))),
         x
       )
-    }.id
+    }.leaderId
   }
 }
