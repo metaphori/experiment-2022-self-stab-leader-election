@@ -26,6 +26,7 @@ class SMinimisingRep extends AggregateProgram with StandardSensors with ScafiAlc
 
   case class Candidacy(symBreaker: Int, distance: Double, leaderId: Int)
 
+  // cf. https://arxiv.org/pdf/1711.08297.pdf
   def SWithMinimisingRep(grain: Double, symBreaker: Int): ID = {
     implicit object BoundedMsg extends Bounded[Candidacy]{
       override def bottom: Candidacy = Candidacy(implicitly[Bounded[Int]].bottom, implicitly[Bounded[Double]].bottom, implicitly[Bounded[ID]].bottom)
